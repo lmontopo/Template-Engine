@@ -1,0 +1,10 @@
+<html>
+{% for item in to_do %}
+<li> 
+	{% for task in item %}
+	<li>{{task}}</li>
+	{%end%}
+</li>
+{%end%}
+</html>
+
