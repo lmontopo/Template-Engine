@@ -5,14 +5,10 @@ class ResultingHTML(object):
 	def __init__(self, value = ""):
 		self.value = value
 	def update_output(self, html_text):
-		try:
-			self.value = self.value + html_text
-		except TypeError:
-			#this will help me catch errors in my html template
-			str(html_text)
-			self.value = self.value + html_text
-		
-
+		html_text = str(html_text)
+		self.value = self.value + html_text
+		self.value = self.value.replace('\n', '')
+		self.value = self.value.replace('\t', '')
 
 my_HTML = ResultingHTML()
 
@@ -33,8 +29,6 @@ class Scope(object):
 		except:
 			value = self.parent.fetch(input_key)
 		return value
-
-
 
 
 # --------- Determines Type of Node ------------ #
@@ -103,7 +97,6 @@ def evaluate_node(node, context):
 		var_value = context.fetch(node['value'])
 		return my_HTML.update_output(var_value)
 
-
 def evaluate_list(list_input, context):
 	if bool((re.search("for\s.*?\sin", list_input[0]['value']))):
 		do_for_loop(list_input, context)
@@ -127,10 +120,25 @@ def do_conditional(list_input, context):
 
 # ---------- Running Things ---------------- #
 
-parsed_template = parse(tokenize('first_template.html'))
-print parsed_template, 'parsed template'
-outter_context = Scope(None, {'name': 'Leta', 'to_do': [['eat', 'sleep'], ['shower', 'homework']]})
+template_1 = 'first_template.html'
+template_3 = 'else_template.html'
 
-eval_main(parsed_template, outter_context)
-print "The resulting HTML is:\n", my_HTML.value
 
+# parsed_template1 = parse(tokenize(template_1))[0]
+# print "Parsed template #1: ", parsed_template1, '\n'
+# vars_1 = {'name': 'Leta', 'to_do': [['shower', 'fun'],['errands', 'work']]}
+# outter_context1 = Scope(None, vars_1)
+# eval_main(parsed_template1, outter_context1)
+# print "The resulting HTML for template 1 is :\n", my_HTML.value, '\n'
+
+# parsed_template3 = parse(tokenize(template_3))[0]
+# print "Parsed Template #3: ", parsed_template3, '\n'
+# vars_3 = {'name': 'Leta', 'num': -2}
+# outter_context3 = Scope(None, vars_3)
+# eval_main(parsed_template3, outter_context3)
+# print "The resulting HTML for template 3 is :\n", my_HTML.value, '\n'
+
+
+# new_file = open('else.html', 'w')
+# new_file.write(my_HTML.value)
+# new_file.close
