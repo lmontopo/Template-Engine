@@ -1,5 +1,11 @@
 import re
 
+BLOCK_START = "BLOCK_START"
+BLOCK_END   = "BLOCK_END"
+BLOCK_ELSE  = "BLOCK_ELSE"
+VARIABLE    = "VARIABLE"
+TEXT		= "TEXT"
+
 # ------- This class will keep my resulting HTML ----------#
 class ResultingHTML(object):
 	def __init__(self, value = ""):
@@ -34,30 +40,28 @@ class Scope(object):
 # --------- Determines Type of Node ------------ #
 def determine_type(token):
 	if re.match("{{.*?}}", token):
-		return 'VARIABLE'
+		return VARIABLE
 	elif re.match("{%.*?%}", token):
 		if re.match("{%\s*?end\s*%}", token):
-			return 'BLOCK_END'
+			return BLOCK_END
 		else:
-			return 'BLOCK_START'
+			return BLOCK_START
 	else:
-		return 'TEXT'
+		return TEXT
 
 
 # ---------- Tokenizer and Parser ----------- #
-def tokenize(file):
-	TOKENIZED = re.compile(r"({{.*?}}|{%.*?%})")
-	with open(file, 'r') as template:
-		text =  template.read()
-		template_list = TOKENIZED.split(text)
+def tokenize(template_text):
+		TOKENIZED = re.compile(r"({{.*?}}|{%.*?%})")
+		template_list = TOKENIZED.split(template_text)
 		template_with_type = []
 		for tok in template_list:
 			token_type = determine_type(tok)
-			if token_type == 'VARIABLE' or token_type == 'BLOCK_END' or token_type == 'BLOCK_START':
+			if token_type == VARIABLE or token_type == BLOCK_END or token_type == BLOCK_START:
 				token_value = tok[2:-2]
 			else:
 				token_value = tok
-			token_data = { 'type': token_type, 'value': token_value}
+			token_data = (token_type, token_value)
 			template_with_type.append(token_data)
 		return template_with_type
 
@@ -66,17 +70,17 @@ def parse(input_t):
 	output = []
 	while True:
 		item, input_t = input_t[0], input_t[1:]
-		if (item['type'] != 'BLOCK_START' and item['type'] != 'BLOCK_END'):
+		if (item[0] != BLOCK_START and item[0] != BLOCK_END):
 			output.append(item)
 			if len(input_t) == 0:
 				break
-		if item['type'] == 'BLOCK_START':
+		if item[0] == BLOCK_START:
 			sub_output, input_t = parse(input_t)
 			sub_output.insert(0, item)
 			output.append(sub_output)
 			if len(input_t) == 0:
 				break
-		if item['type'] == 'BLOCK_END':
+		if item[0] == BLOCK_END:
 			return output, input_t
 	return output
 
@@ -91,9 +95,9 @@ def eval_main(parsed_template, context):
 
 
 def evaluate_node(node, context):
-	if node['type'] == 'TEXT':
+	if node['type'] == TEXT:
 		return my_HTML.update_output(node['value'])
-	if node['type'] == 'VARIABLE':
+	if node['type'] == VARIABLE:
 		var_value = context.fetch(node['value'])
 		return my_HTML.update_output(var_value)
 
@@ -120,8 +124,8 @@ def do_conditional(list_input, context):
 
 # ---------- Running Things ---------------- #
 
-template_1 = 'first_template.html'
-template_3 = 'else_template.html'
+# template_1 = 'first_template.html'
+# template_3 = 'else_template.html'
 
 
 # parsed_template1 = parse(tokenize(template_1))[0]
