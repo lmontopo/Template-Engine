@@ -6,6 +6,12 @@ def slurp(path):
 		return f.read()
 
 class TestMain(unittest.TestCase):
+	def tearDown(self):
+		my_HTML = ResultingHTML()
+
+	def setUp(self):
+		my_HTML = ResultingHTML()
+
 	def test_determine_type(self):
 		self.assertEqual(determine_type('{{name}}'), VARIABLE)
 		self.assertEqual(determine_type('{% end %}'), BLOCK_END)
@@ -13,21 +19,22 @@ class TestMain(unittest.TestCase):
 		self.assertEqual(determine_type('{% for blah in blah %}'), BLOCK_START)
 		self.assertEqual(determine_type('<html>Hey<h1>'), TEXT)
 
+
 	def test_empty(self):
 		tokens = tokenize(slurp("empty.html"))
 		self.assertEqual(tokens, [(TEXT, '')])
-		ast = parse(tokens)
+		ast = parse(tokens)[0]
 		self.assertEqual(ast, [(TEXT, '')])
 
 	def test_variable(self):
 		tokens = tokenize(slurp("variable.html"))
-		expected = [(TEXT, '<html>'), (VARIABLE, 'variable'), (TEXT, '</html>\n')]
+		expected = [(TEXT, '<html>'), (VARIABLE, 'variable'), (TEXT, '</html>')]
 		self.assertEqual(tokens, expected)
-		ast = parse(tokens)
+		ast = parse(tokens)[0]
 		self.assertEqual(ast, expected)
 	
 	def test_nested(self):
-		ast = parse(tokenize(slurp("nested.html")))
+		ast = parse(tokenize(slurp("nested.html")))[0]
 		expected = [
 				('TEXT', ''),
 				[
@@ -41,7 +48,7 @@ class TestMain(unittest.TestCase):
 		self.assertEqual(ast, expected)
 
 	def test_double_nested(self):
-		ast = parse(tokenize(slurp("double_nested.html")))
+		ast = parse(tokenize(slurp("double_nested.html")))[0]
 		expected = [
 				('TEXT', ''),
 				[
@@ -62,30 +69,46 @@ class TestMain(unittest.TestCase):
 		self.assertEqual(ast, expected)
 
 	def test_conditional(self):
-		ast = parse(tokenize(slurp("conditional.html")))
-		print ast
-		assertEqual(0, 1)
+		ast = parse(tokenize(slurp("conditional.html")))[0]
+		expected = [
+					('TEXT', ''), 
+						[
+						('BLOCK_START', ' if num > 0 '), 
+							[
+							('TEXT', ''), 
+							('VARIABLE', 'num'), 
+							('TEXT', '')
+							], 
+							
+							[
+							('TEXT', ' Nope ')
+							]
+						], 
+					('TEXT', '\n')
+					]
+		self.assertEqual(ast, expected)
 
-"""
-	def test_parser(self):
 
-		template_conditional = 'else_template.html'
-		parsed_conditional = [{'type': 'TEXT', 'value': '<html>\n<body>\n'},		
-		 				[{'type': 'BLOCK_START', 'value': 'if num > 0 '}, 
-		 				[{'type': 'TEXT', 'value': '\n'}, {'type': 'VARIABLE', 'value': 'num'},
-		 				 {'type': 'TEXT', 'value': '\n'}], 
-		 				 [{'type': 'TEXT', 'value': '\nOut of numbers!\n'}]], 
-		 				 {'type': 'TEXT', 'value': '\n</body>\n</html>\n'}]
-		self.assertEqual(parse(tokenize(template_conditional))[0], parsed_conditional)
+	def test_output_simple(self):
+		outter_context = Scope(None, {})
+		ast = parse(tokenize(slurp("basic.html")))[0]
+		output = eval_main(ast, outter_context)
+		self.assertEqual(my_HTML.value, '<html>Hi</html>')
+		
+	# def test_output_hello_var(self):
+	# 	outter_context = Scope(None, {'name': 'Leta'})
+	# 	ast = parse(tokenize(slurp("hello.html")))[0]
+	# 	output = eval_main(ast, outter_context)
+	# 	self.assertEqual(my_HTML.value, '<html>Hey, Leta</html>')
+		
 
-
-	def test_output_loops(self):
-		loops_html = "<html><li> Day <li>shower</li><li>fun</li></li><li> Day <li>errands</li><li>work</li></li></html>"
-		template_for = 'first_template.html'
-		vars_loop = {'name': 'Leta', 'to_do': [['shower', 'fun'],['errands', 'work']]}
-		outter_context = Scope(None, vars_loop)
-		eval_main(parse(tokenize(template_for))[0], outter_context)
-		self.assertEqual(my_HTML.value, loops_html)
+	# def test_output_loops(self):
+	# 	loops_html = "<html><li> Day <li>shower</li><li>fun</li></li><li> Day <li>errands</li><li>work</li></li></html>"
+	# 	template_for = 'first_template.html'
+	# 	vars_loop = {'name': 'Leta', 'to_do': [['shower', 'fun'],['errands', 'work']]}
+	# 	outter_context = Scope(None, vars_loop)
+	# 	eval_main(parse(tokenize(template_for))[0], outter_context)
+	# 	self.assertEqual(my_HTML.value, loops_html)
 
 
 	# def test_output_conditional_else(self):
@@ -96,7 +119,9 @@ class TestMain(unittest.TestCase):
 	# 	outter_context = Scope(None, vars_cond)
 	# 	eval_main(parse(tokenize(template_cond))[0], outter_context)
 	# 	self.assertEqual(my_HTML.value, cond_html)
-"""
 
-if __name__ == '__main__':
+
+if __name__ == '__main__': 
 	unittest.main()
+
+
