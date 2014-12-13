@@ -1,4 +1,5 @@
 from engine import *
+
 import unittest 
 
 def slurp(path):
@@ -6,11 +7,7 @@ def slurp(path):
 		return f.read()
 
 class TestMain(unittest.TestCase):
-	def tearDown(self):
-		my_HTML = ResultingHTML()
-
-	def setUp(self):
-		my_HTML = ResultingHTML()
+		
 
 	def test_determine_type(self):
 		self.assertEqual(determine_type('{{name}}'), VARIABLE)
@@ -90,25 +87,21 @@ class TestMain(unittest.TestCase):
 
 
 	def test_output_simple(self):
-		outter_context = Scope(None, {})
+		context = Scope(None, {})
 		ast = parse(tokenize(slurp("basic.html")))[0]
-		output = eval_main(ast, outter_context)
-		self.assertEqual(my_HTML.value, '<html>Hi</html>')
+		output = template_compile(ast, context)
+		self.assertEqual(output, '<html>Hi</html>')
 		
-	# def test_output_hello_var(self):
-	# 	outter_context = Scope(None, {'name': 'Leta'})
-	# 	ast = parse(tokenize(slurp("hello.html")))[0]
-	# 	output = eval_main(ast, outter_context)
-	# 	self.assertEqual(my_HTML.value, '<html>Hey, Leta</html>')
+	def test_output_hello_var(self):
+		context = Scope(None, {'name': 'Leta'})
+		ast = parse(tokenize(slurp("hello.html")))[0]
+		output = template_compile(ast, context)
+		self.assertEqual(output, '<html>Hey, Leta</html>')
 		
 
-	# def test_output_loops(self):
-	# 	loops_html = "<html><li> Day <li>shower</li><li>fun</li></li><li> Day <li>errands</li><li>work</li></li></html>"
-	# 	template_for = 'first_template.html'
-	# 	vars_loop = {'name': 'Leta', 'to_do': [['shower', 'fun'],['errands', 'work']]}
-	# 	outter_context = Scope(None, vars_loop)
-	# 	eval_main(parse(tokenize(template_for))[0], outter_context)
-	# 	self.assertEqual(my_HTML.value, loops_html)
+	def test_output_loops(self):
+		context = Scope(None, {to_do: ['shower', 'play']})
+		
 
 
 	# def test_output_conditional_else(self):

@@ -11,13 +11,14 @@ TEXT		= "TEXT"
 class ResultingHTML(object):
 	def __init__(self, value = ""):
 		self.value = value
+		with open ('value.txt', 'a') as erfile:
+			erfile.write('We are re-instantiating and the value is: %s' %self.value)
 	def update_output(self, html_text):
 		html_text = str(html_text)
 		self.value = self.value + html_text
 		self.value = self.value.replace('\n', '')
 		self.value = self.value.replace('\t', '')
 
-my_HTML = ResultingHTML()
 
 
 # ------------ Scope Class ------------- # 
@@ -101,18 +102,23 @@ def parse(input_t):
 
 
 # ----------- Main Evaluation ------------- #
-def eval_main(parsed_template, context):
+def template_compile(parsed_template, context):
+	my_HTML = ResultingHTML()
+	eval_main(parsed_template, context, my_HTML)
+	return my_HTML.value
+
+def eval_main(parsed_template, context, my_HTML):
 	with open ('error.txt', 'a') as erfile:
 		erfile.write('%s' %parsed_template)
 	for item in parsed_template:
 
 		if type(item) is list:
-			evaluate_list(item, context)
+			evaluate_list(item, context, my_HTML)
 		elif type(item) is tuple:
-			evaluate_node(item, context)
+			evaluate_node(item, context, my_HTML)
 
 
-def evaluate_node(node, context):
+def evaluate_node(node, context, my_HTML):
 	with open ('error.txt', 'a') as erfile:
 			erfile.write('im in evaluate_node')
 	if node[0] == TEXT:
@@ -153,30 +159,3 @@ def do_conditional(list_input, context):
 		return eval_main(consequence, context)
 	else:
 		return eval_main(alternate, context)
-
-
-# ---------- Running Things ---------------- #
-
-template_1 = 'first_template.html'
-template_3 = 'else_template.html'
-
-
-# parsed_template1 = parse(tokenize(template_1))[0]
-# print "Parsed template #1: ", parsed_template1, '\n'
-# vars_1 = {'name': 'Leta', 'to_do': [['shower', 'fun'],['errands', 'work']]}
-# outter_context1 = Scope(None, vars_1)
-# eval_main(parsed_template1, outter_context1)
-# print "The resulting HTML for template 1 is :\n", my_HTML.value, '\n'
-
-# parsed_template3 = parse(tokenize(template_3))[0]
-# print "Parsed Template #3: ", parsed_template3, '\n'
-# vars_3 = {'name': 'Leta', 'num': -2}
-# outter_context3 = Scope(None, vars_3)
-# eval_main(parsed_template3, outter_context3)
-# print "The resulting HTML for template 3 is :\n", my_HTML.value, '\n'
-
-
-# new_file = open('else.html', 'w')
-# new_file.write(my_HTML.value)
-# new_file.close
-
