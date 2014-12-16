@@ -89,10 +89,12 @@ def parse(input_t):
 	output = []
 	while True:
 		item, input_t = input_t[0], input_t[1:]
+
 		if (item[0] != BLOCK_START and item[0] != BLOCK_END and item[0] != BLOCK_ELSE):
 			output.append(item)
 			if len(input_t) == 0:
 				break
+
 		if item[0] == BLOCK_START:
 			if re.match("\s*?if", item[1]):
 				sub_output, input_t = parse(input_t)
@@ -107,12 +109,15 @@ def parse(input_t):
 				output.append(sub_output)
 			if len(input_t) == 0:
 				break
+
 		if item[0] == BLOCK_ELSE:
 			sub_output, input_t = parse(input_t)
 			output.append(sub_output)
 			return output, input_t
+		
 		if item[0] == BLOCK_END:
 			return output, input_t
+	
 	return output, input_t
 
 
@@ -127,8 +132,8 @@ def process_template(parsed_template, context):
 
 def eval_main(parsed_template, context, my_HTML):
 	for item in parsed_template:
-		if type(item) is list:
-			evaluate_list(item, context, my_HTML)
+		if type(item) is list: 
+			evaluate_logic(item, context, my_HTML)
 		elif type(item) is tuple:
 			evaluate_node(item, context, my_HTML)
 
@@ -142,7 +147,7 @@ def evaluate_node(node, context, my_HTML):
 		return None
 
 
-def evaluate_list(list_input, context, my_HTML):
+def evaluate_logic(list_input, context, my_HTML):
 	if bool((re.search("for\s.*?\sin", list_input[0][1]))):
 		do_for_loop(list_input, context, my_HTML)
 	if bool((re.match(".?if", list_input[0][1]))):
