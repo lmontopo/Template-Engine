@@ -6,6 +6,7 @@ def slurp(path):
 	with open(path, "r") as f:
 		return f.read()
 
+
 class TestMain(unittest.TestCase):
 		
 
@@ -29,6 +30,11 @@ class TestMain(unittest.TestCase):
 		self.assertEqual(tokens, expected)
 		ast = parse(tokens)[0]
 		self.assertEqual(ast, expected)
+
+	def test_get_ast(self):
+		ast = get_ast(tokenize(slurp("variable.html")))
+		expected = [(TEXT, '<html>'), (VARIABLE, 'variable'), (TEXT, '</html>')]
+		self.assertEqual(ast,expected)
 	
 	def test_nested(self):
 		ast = parse(tokenize(slurp("nested.html")))[0]
@@ -89,32 +95,20 @@ class TestMain(unittest.TestCase):
 	def test_output_simple(self):
 		context = Scope(None, {})
 		ast = parse(tokenize(slurp("basic.html")))[0]
-		output = template_compile(ast, context)
+		output = process_template(ast, context)
+		self.assertEqual(output, '<html>Hi</html>')
+
+	def test_render(self):
+		context = {}
+		output = render("basic.html", context)
 		self.assertEqual(output, '<html>Hi</html>')
 		
 	def test_output_hello_var(self):
 		context = Scope(None, {'name': 'Leta'})
 		ast = parse(tokenize(slurp("hello.html")))[0]
-		output = template_compile(ast, context)
+		output = process_template(ast, context)
 		self.assertEqual(output, '<html>Hey, Leta</html>')
 		
 
-	def test_output_loops(self):
-		context = Scope(None, {to_do: ['shower', 'play']})
-		
-
-
-	# def test_output_conditional_else(self):
-	# 	#my_HTML = ResultingHTML()
-	# 	cond_html = "<html><body>Out of numbers!</body></html>"
-	# 	template_cond = 'else_template.html'
-	# 	vars_cond = {'num': -2}
-	# 	outter_context = Scope(None, vars_cond)
-	# 	eval_main(parse(tokenize(template_cond))[0], outter_context)
-	# 	self.assertEqual(my_HTML.value, cond_html)
-
-
 if __name__ == '__main__': 
 	unittest.main()
-
-
